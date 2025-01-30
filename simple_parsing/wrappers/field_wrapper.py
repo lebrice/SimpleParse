@@ -330,6 +330,8 @@ class FieldWrapper(Wrapper):
         elif self.is_union:
             logger.debug("Parsing a Union type!")
             _arg_options["type"] = get_parsing_fn(self.type)
+            if any(utils.is_list(o) for o in utils.get_args(self.type)):
+                _arg_options["nargs"] = "*"
 
         elif self.is_enum:
             logger.debug(f"Adding an Enum attribute '{self.name}'")
@@ -500,6 +502,13 @@ class FieldWrapper(Wrapper):
                 return list(raw_parsed_value)
             else:
                 return raw_parsed_value
+
+        elif self.is_union:
+            list_in = [utils.is_list(o) for o in utils.get_args(self.type)]
+            # if type is like Union[str, list[str]] and only a single value was passed,
+            if any(list_in) and (not all(list_in)) and (len(raw_parsed_value) == 1):
+                raw_parsed_value = raw_parsed_value[0]
+            return raw_parsed_value
 
         elif self.is_subparser:
             return raw_parsed_value

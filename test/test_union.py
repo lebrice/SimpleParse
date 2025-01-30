@@ -32,3 +32,25 @@ def test_union_type_raises_error():
 
     foo = Foo2.setup("--x 2")
     assert foo.x == 2 and type(foo.x) is int
+
+
+def test_union_type_with_list():
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[str, list[str]]
+
+    foo = Foo.setup("--x bob")
+    assert foo.x == "bob"
+
+    foo = Foo.setup("--x bob alice")
+    assert foo.x == ["bob", "alice"]
+
+    @dataclass
+    class Foo(TestSetup):
+        x: Union[list[int], list[str]]
+
+    foo = Foo.setup("--x bob alice")
+    assert foo.x == ["bob", "alice"]
+
+    foo = Foo.setup("--x 1 2")
+    assert foo.x == [1, 2]
