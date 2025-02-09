@@ -263,8 +263,15 @@ class DataclassWrapper(Wrapper, Generic[DataclassT]):
             self._defaults = []
             for default in self.parent.defaults:
                 if default not in (None, argparse.SUPPRESS):
-                    default = getattr(default, self.name)
-                self._defaults.append(default)
+                    # we need to check here if the default has been provided.  
+                    # If not we'll use the default_value option function
+                    if hasattr(default, self.name):
+                        default = getattr(default, self.name)
+                    else:
+                        default = utils.default_value(self._field)
+                    if default is MISSING:
+                        continue
+                    self._defaults.append(default)
         else:
             default_field_value = utils.default_value(self._field)
             if default_field_value is MISSING:

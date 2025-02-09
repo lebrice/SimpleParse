@@ -1025,7 +1025,12 @@ class FieldWrapper(Wrapper):
             # Just for typing correctness, as we didn't explicitly change
             # the return type of subparsers.add_parser method.)
             subparser = cast("ArgumentParser", subparser)
-            subparser.add_arguments(dataclass_type, dest=self.dest)
+            # we need to propagate the defaults down to the sub dataclass if they've been set.
+            # there may need to be some error handling here in case the use has specified the wrong values for the default.
+            if isinstance(self.default, dict) and self.default.get(subcommand, None) is not None:
+                subparser.add_arguments(dataclass_type, dest=self.dest, default=dataclass_type(**self.default[subcommand]))
+            else:
+                subparser.add_arguments(dataclass_type, dest=self.dest)
 
     def equivalent_argparse_code(self):
         arg_options = self.arg_options.copy()
